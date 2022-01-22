@@ -2,7 +2,7 @@ import cv2
 import random
 import numpy as np
 
-result_folder = r"/Users/ahnupsingh/avail/make_covid_database_image/output/result"
+# result_folder = r"/Users/ahnupsingh/avail/make_covid_database_image/output/result"
 map = {}
 
 def load_img(path):
@@ -17,7 +17,7 @@ def get_thresh(img):
     ret, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY)
     # thresh = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
     #cv2.bitwise_not(thresh, thresh)
-    cv2.imwrite(result_folder+'/Covid_.jpg', gray)
+    # cv2.imwrite(result_folder+'/Covid_.jpg', gray)
 
     return ret, thresh
 
@@ -59,7 +59,9 @@ def draw_contours(img, contours, hierarchy):
     j = 1
     total_area = 0
     if hierarchy.any():
+        # print('first ',len(contours))
         for i in range(0, len(contours)):
+            # total_area = 0
             if hierarchy[i][3] != -1 and hierarchy[i][2] != -1:
 
                 parent_contour = hierarchy[hierarchy[i][3]]
@@ -67,16 +69,30 @@ def draw_contours(img, contours, hierarchy):
                 # if parent_contour has no parent
                 if not has_parent(parent_contour):
                     color, name = get_random_color()
-                    cv2.drawContours(img, contours, i, color, 2)
-                    total_area += cv2.contourArea(contours[0])
+                    # cv2.drawContours(img, contours, i, color, 2)
+                    # print('second ',len(contours))
+                    # print(i)
+                    
+                    # total_area = get_area(contours)
+                    # print(total_area)
+                    area = cv2.contourArea(contours[i])
+                    total_area += area
+                    # total_area += cv2.contourArea(contours[i])
                     map[name] = (contours, i)
 
                     # img = add_label(img, str(i) + " " + str(hierarchy[i]), (10,30 + j * 30), color)
+                    # img = add_label(img, str(area), (10,30 + j * 30), color)
                     j = j + 1
 
     # contours, i = map[list(map.keys())[1]]
     return img, total_area
 
+def get_area(cnts):
+    total_area = 0
+    for cnt in cnts:
+        #cv2.drawContours(org_img, [cnt], -1, (0,255,255), 2)
+        total_area += cv2.contourArea(cnt)
+    return total_area
 
 def get_random_color():
     value1 = int(random.random() * 1000 % 255)
