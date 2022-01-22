@@ -20,7 +20,7 @@ file_count = len(files)
 infected_area = 0
 infected_image = 0
 image_position = 0
-boundary = None
+final_boundary = None
 
 # file_count = 2
 for i in range(1, file_count):
@@ -32,16 +32,12 @@ for i in range(1, file_count):
     boundary = get_boundary(thresh)
 
     output_img, total_area = draw_contours(org_img, cnts, hierarchy[0])
-    masked = mask_image(output_img, boundary)
-    inverted = invert(masked)
-    
-    cnts = cnts[0]
     
     if (total_area > infected_area):
         infected_area = total_area
         infected_image = output_img
         image_position = i
-        boundary = boundary
+        final_boundary = boundary
         
     # write(result_folder + f'/Covid_{str(i)}_{total_area}.jpg', output_img)
     # write(result_folder + f'/Covid_{str(i)}_{total_area}_masked.jpg', masked)
@@ -49,4 +45,7 @@ for i in range(1, file_count):
     print(f"...{i}")
 
 
-write(result_folder + f'/final_{str(image_position)}_{infected_area}.jpg', infected_image)
+masked = mask_image(infected_image, final_boundary)
+inverted = invert(masked)
+
+write(result_folder + f'/final_{str(image_position)}_{infected_area}.jpg', inverted)
