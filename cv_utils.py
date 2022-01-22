@@ -1,5 +1,6 @@
 import cv2
 import random
+import numpy as np
 
 result_folder = r"/Users/ahnupsingh/avail/make_covid_database_image/output/result"
 map = {}
@@ -12,6 +13,10 @@ def get_thresh(img):
     cv2.imwrite(result_folder+'/Covid_.jpg', gray)
 
     return ret, thresh
+
+def get_boundary(thresh):
+    contours = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    return contours[0]
 
 def get_contours(thresh):
     hierarchy = [[]]
@@ -51,7 +56,7 @@ def draw_contours(img, contours, hierarchy):
             if hierarchy[i][3] != -1 and hierarchy[i][2] != -1:
 
                 parent_contour = hierarchy[hierarchy[i][3]]
-                print("parent", parent_contour)
+                # print("parent", parent_contour)
                 # if parent_contour has no parent
                 if not has_parent(parent_contour):
                     color, name = get_random_color()
@@ -80,3 +85,42 @@ def add_label(img, label, position, color=get_random_color()):
 
 def has_parent(hierarchy):
     return hierarchy[3] != -1
+
+
+def draw_bounding_rect(img, contours):
+    c = max(contours, key=cv2.contourArea)
+
+    left = tuple(c[c[:, :, 0].argmin()][0])
+    right = tuple(c[c[:, :, 0].argmax()][0])
+
+    distance = np.sqrt( (right[0] - left[0])**2 + (right[1] - left[1])**2 )
+
+    
+    centx = np.sqrt( ((right[0] + left[0])**2)/4)
+    centy = np.sqrt( ((right[1] + left[1])**2)/4 )
+    print(centx, centy)
+
+    x,y,w,h = cv2.boundingRect(c)
+
+    # draw bounding reactangle
+    # cv2.rectangle(img,(x,y),(x+w,y+h),255,-1)
+
+    # draw bounding circle
+    # cv2.circle(img, (int(centx), int(centy)), int(w/2), 255, -1)
+
+    # draw bounding contour
+    cv2.drawContours(img, contours, -1, 255, -1)
+
+    print(x, y, w, h)
+    return img
+
+
+def mask_image(img, contours):
+    # mask = np.zeros_like(img) # Create mask where white is what we want, black otherwise
+    # cv2.drawContours(mask, contours, idx, 255, -1) # Draw filled contour in mask
+
+    mask = np.zeros(img.shape[:2], dtype="uint8")
+    mask = draw_bounding_rect(mask, contours)
+    masked = cv2.bitwise_and(img, img, mask=mask)
+
+    return masked

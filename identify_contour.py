@@ -5,7 +5,7 @@ import os
 # from keras.preprocessing import image
 import matplotlib.pyplot as plt
 
-from cv_utils import draw_contours, get_thresh, get_contours
+from cv_utils import draw_contours, get_thresh, get_contours, mask_image, get_boundary
 
 max_area = 0
 
@@ -29,21 +29,12 @@ for i in range(1, file_count):
     org_img = cv2.imread(img_path)
     ret, thresh = get_thresh(org_img)
     cnts, hierarchy = get_contours(thresh)
+    boundary = get_boundary(thresh)
+
     org_img, total_area = draw_contours(org_img, cnts, hierarchy[0])
+    masked = mask_image(org_img, boundary)
     
     cnts = cnts[0]
-    max_contour = max(cnts, key=cv2.contourArea)
-
-    # left = tuple(c[c[:, :, 0].argmin()][0])
-    # right = tuple(c[c[:, :, 0].argmax()][0])
-
-    # distance = np.sqrt( (right[0] - left[0])**2 + (right[1] - left[1])**2 )
-
-    x,y,w,h = cv2.boundingRect(max_contour)
-
-    # centx = np.sqrt( ((right[0] + left[0])**2)/4)
-    # centy = np.sqrt( ((right[1] + left[1])**2)/4 )
-    # print(centx, centy)
 
     # font = cv2.FONT_HERSHEY_SIMPLEX
     # cv2.circle(img, left, 5, (0, 0, 255), -1)
@@ -51,8 +42,7 @@ for i in range(1, file_count):
     # cv2.circle(img, (int(centx), int(centy)), 5, (0, 0, 255), -1)
     # cv2.line(img, left, right, (255,0,0), 2)
     
-    # draw bounding reactangle
-    # cv2.rectangle(org_img,(x,y),(x+w,y+h),(0,255,0),2)
+
     # cv2.putText(img,'Distance: '+str(distance),(10,30), font, 1, (0,0,0),2, cv2.LINE_AA)
 
     total_area = 0
@@ -69,16 +59,6 @@ for i in range(1, file_count):
     # print(cnt_with_max_area)
     # index = cnts.index(cnt_with_max_area)
     # print(index)
-    # mask = np.zeros_like(img) # Create mask where white is what we want, black otherwise
-    # cv2.drawContours(mask, cnts, idx, 255, -1) # Draw filled contour in mask
-    # out = np.zeros_like(img) # Extract out the object and place into output image
-    # out[mask == 255] = img[mask == 255]
-
-    # # Now crop
-    # (y, x) = np.where(mask == 255)
-    # (topy, topx) = (np.min(y), np.min(x))
-    # (bottomy, bottomx) = (np.max(y), np.max(x))
-    # out = out[topy:bottomy+1, topx:bottomx+1]
 
     # # Show the output image
     # cv2.imshow('Output', out)
@@ -97,3 +77,4 @@ for i in range(1, file_count):
     # cv2.imshow('img', org_img)
 
     cv2.imwrite(result_folder+'/Covid_'+f'{str(i)}.jpg', org_img)
+    cv2.imwrite(result_folder+'/masked_'+f'{str(i)}.jpg', masked)
