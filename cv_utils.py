@@ -5,6 +5,13 @@ import numpy as np
 result_folder = r"/Users/ahnupsingh/avail/make_covid_database_image/output/result"
 map = {}
 
+def load_img(path):
+    # img = image.load_img(img_path, grayscale=True, target_size=(512,512))
+    # img = image.img_to_array(img, dtype='uint8')
+    
+    img = cv2.imread(path)
+    return img
+
 def get_thresh(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ret, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY)
@@ -88,19 +95,19 @@ def has_parent(hierarchy):
 
 
 def draw_bounding_rect(img, contours):
-    c = max(contours, key=cv2.contourArea)
+    # c = max(contours, key=cv2.contourArea)
 
-    left = tuple(c[c[:, :, 0].argmin()][0])
-    right = tuple(c[c[:, :, 0].argmax()][0])
+    # left = tuple(c[c[:, :, 0].argmin()][0])
+    # right = tuple(c[c[:, :, 0].argmax()][0])
 
-    distance = np.sqrt( (right[0] - left[0])**2 + (right[1] - left[1])**2 )
+    # distance = np.sqrt( (right[0] - left[0])**2 + (right[1] - left[1])**2 )
 
     
-    centx = np.sqrt( ((right[0] + left[0])**2)/4)
-    centy = np.sqrt( ((right[1] + left[1])**2)/4 )
-    print(centx, centy)
+    # centx = np.sqrt( ((right[0] + left[0])**2)/4)
+    # centy = np.sqrt( ((right[1] + left[1])**2)/4 )
+    # print(centx, centy)
 
-    x,y,w,h = cv2.boundingRect(c)
+    # x,y,w,h = cv2.boundingRect(c)
 
     # draw bounding reactangle
     # cv2.rectangle(img,(x,y),(x+w,y+h),255,-1)
@@ -110,8 +117,6 @@ def draw_bounding_rect(img, contours):
 
     # draw bounding contour
     cv2.drawContours(img, contours, -1, 255, -1)
-
-    print(x, y, w, h)
     return img
 
 
@@ -137,3 +142,13 @@ def invert(img):
                 img[i, j] = [255, 255, 255]
     
     return img
+
+def show(img):
+    # Show the output image
+    cv2.imshow('Output', img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+def write(location, img):
+    cv2.imwrite(location, img)
