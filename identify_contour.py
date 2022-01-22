@@ -5,7 +5,7 @@ import os
 # from keras.preprocessing import image
 import matplotlib.pyplot as plt
 
-from cv_utils import draw_contours, get_thresh, get_contours, mask_image, get_boundary
+from cv_utils import draw_contours, get_thresh, get_contours, mask_image, get_boundary, invert
 
 max_area = 0
 
@@ -33,6 +33,7 @@ for i in range(1, file_count):
 
     org_img, total_area = draw_contours(org_img, cnts, hierarchy[0])
     masked = mask_image(org_img, boundary)
+    inverted = invert(masked)
     
     cnts = cnts[0]
 
@@ -78,3 +79,4 @@ for i in range(1, file_count):
 
     cv2.imwrite(result_folder+'/Covid_'+f'{str(i)}.jpg', org_img)
     cv2.imwrite(result_folder+'/masked_'+f'{str(i)}.jpg', masked)
+    cv2.imwrite(result_folder+'/inverted_'+f'{str(i)}.jpg', inverted)

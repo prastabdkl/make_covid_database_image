@@ -124,3 +124,16 @@ def mask_image(img, contours):
     masked = cv2.bitwise_and(img, img, mask=mask)
 
     return masked
+
+
+def invert(img):
+    height, width, _ = img.shape
+
+    for i in range(height):
+        for j in range(width):
+            # img[i,j] is the RGB pixel at position (i, j)
+            # check if it's [0, 0, 0] and replace with [255, 255, 255] if so
+            if img[i,j].sum() == 0:
+                img[i, j] = [255, 255, 255]
+    
+    return img
