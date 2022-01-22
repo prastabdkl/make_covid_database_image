@@ -9,43 +9,63 @@ import glob
 
 from cv_utils import draw_contours, get_thresh, get_contours, mask_image, get_boundary, invert, write, load_img
 
-# jpg_folder_path = r"/Users/ahnupsingh/avail/make_covid_database_image/output/covid/"
-# result_folder = r"/Users/ahnupsingh/avail/make_covid_database_image/output/final"
+SEPARATOR_ = "\\"
 
-jpg_folder_path = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\covid"
-result_folder = r'C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output_counter\covid' 
+base_path = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD"
+# base_path = "/Users/ahnupsingh/avail/make_covid_database_image"
 
+covid_images_directory = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\images\COVID_dcm"
+# covid_images_directory = base_path + SEPARATOR_ +  "images" + SEPARATOR_ +  "COVID_dcm"
+# covid_selected_images_directory = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\covid"
+# covid_max_images = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\selected_images\covid"
+# covid_masked_images = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\masked_images\covid"
 
-covid_images_directory = r'C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\images\COVID_dcm' 
-covid_selected_images_directory = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\covid"
+normal_images_directory = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\images\Normal_dcm"
+# normal_images_directory = base_path + SEPARATOR_ +  "images" + SEPARATOR_ +  "Normal_dcm"
+# normal_selected_images_directory = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\normal"
+# normal_max_images = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\selected_images\normal"
+# normal_masked_images = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\masked_images\normal"
 
-covid_max_images = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\selected_images\covid"
-covid_masked_images = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\masked_images\covid"
+destination = base_path + SEPARATOR_ +  "output"
 
-normal_images_directory = r'C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\images\Normal_dcm' 
-normal_selected_images_directory = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\normal"
+def remove_files(path):
+    files = glob.glob(path)
+    for f in files:
+        os.remove(f)
 
-normal_max_images = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\selected_images\normal"
-normal_masked_images = r"C:\Users\prast\Downloads\CS 7000\Final report\COVID-CT-MD\output\masked_images\normal"
-
-# images_path = os.listdir(result_folder)    
-# path,dirs,files = next(os.walk(result_folder))
-# # file_count = len(files)
-
-# # files = glob.glob(result_folder)
-# os.remove(path)
-# # os.mkdir(result_folder)
-# # for f in files:
-# #     os.remove(f)
-# exit()
 def create_masked_image(max_image,final_boundary,destination,filename):
     masked = mask_image(max_image, final_boundary)
     inverted = invert(masked)
     write(destination + filename, inverted)
-    
-def identify_max_image(source,destination,folder_name,max_images_dest,masked_images_dest):
 
-    images_path = os.listdir(source)    
+
+def create_folders(destination, key, separator=SEPARATOR_):
+    key_destination = destination + separator + key
+    if not os.path.isdir(key_destination):
+        os.mkdir(key_destination)
+
+    selected_images = destination + separator + "selected_images"
+    if not os.path.isdir(selected_images):
+        os.mkdir(selected_images)
+
+    masked_images = destination + separator + "masked_images"
+    print("masked destination" + masked_images)
+    if not os.path.isdir(masked_images):
+        os.mkdir(masked_images)
+        print("masked destination" + masked_images)
+
+    max_image_destination = destination + separator + "selected_images" + separator + key
+    if not os.path.isdir(max_image_destination):
+        os.mkdir(max_image_destination)
+
+    masked_image_destination = destination + separator + "masked_images" + separator + key
+    if not os.path.isdir(masked_image_destination):
+        os.mkdir(masked_image_destination)
+
+    return key_destination, max_image_destination, masked_image_destination
+
+    
+def identify_max_image(source, destination, folder_name, key=""):
     path,dirs,files = next(os.walk(source))
     file_count = int(len(files)/2)
     
@@ -54,13 +74,13 @@ def identify_max_image(source,destination,folder_name,max_images_dest,masked_ima
     image_position = 0
     final_boundary = None
 
-    # file_count = 50
-    destination_folder = destination+'\\'+folder
+    key_destination, max_image_destination, masked_image_destination = create_folders(destination, key)
+    destination_folder = key_destination + SEPARATOR_ + folder_name
     if not os.path.isdir(destination_folder):
         os.mkdir(destination_folder)
         
     for i in range(1, file_count+1):
-        img_path = f'{source}\Covid_{str(i)}.jpg' 
+        img_path = f'{source}' + SEPARATOR_ + f'{key}_{str(i)}.jpg' 
         org_img = load_img(img_path)
 
         ret, thresh = get_thresh(org_img)
@@ -78,30 +98,29 @@ def identify_max_image(source,destination,folder_name,max_images_dest,masked_ima
             image_position = i
             final_boundary = boundary
             
-        write(destination_folder + f'/Covid_{folder_name}_{str(i)}_{total_area}.jpg', output_img)
-        # write(destination + f'/Covid_{str(i)}_{total_area}_masked.jpg', masked)
-        # write(destination + f'/Covid_{str(i)}_{total_area}_inverted.jpg', inverted)
+        write(destination_folder + f'/{key}_{folder_name}_{str(i)}_{total_area}.jpg', output_img)
+        # write(destination + f'/{key}_{str(i)}_{total_area}_masked.jpg', masked)
+        # write(destination + f'/{key}_{str(i)}_{total_area}_inverted.jpg', inverted)
         # print(f"...{i}")
 
+    print('Destination folder ', destination_folder)
 
-    # masked = mask_image(max_image, final_boundary)
-    # inverted = invert(masked)
-    write(max_images_dest + f'/max_covid_{folder_name}_{str(image_position)}_{max_area}.jpg', max_image)
-    print('done writing max',folder_name)
+    write(max_image_destination + f'/max_{key}_{folder_name}_{str(image_position)}_{max_area}.jpg', max_image)
+    print('done writing max at ', max_image_destination + f'/max_{key}_{folder_name}_{str(image_position)}_{max_area}.jpg')
     
-    # max_images_dest = destination+'\\'+'masked_image'
-    # if not os.path.isdir(max_images_dest):
-    #     os.mkdir(max_images_dest)
-    create_masked_image(max_image,final_boundary,masked_images_dest,f'/Covid_{folder_name}_{str(image_position)}.jpg')
-    print('done creating mask',folder_name)
+    create_masked_image(max_image, final_boundary, masked_image_destination, f'/{key}_{folder_name}_{str(image_position)}.jpg')
+    print('done creating mask at ', masked_image_destination + f'/{key}_{folder_name}_{str(image_position)}.jpg')
 
-# print(covid_images_directory)
+
 path,dirs,files = next(os.walk(covid_images_directory))
-# print(covid_images_directory+'\\'+'P001')
 # dirs = ['P001']
 for folder in dirs:
-    identify_max_image(covid_images_directory+'\\'+folder,covid_selected_images_directory,folder,covid_max_images,covid_masked_images)
+    source = covid_images_directory + SEPARATOR_ + folder
+    identify_max_image(source, destination, folder, key="Covid")
         
-# identify_max_image(covid_images_directory,covid_selected_images_directory)
-# identify_max_and_mask(normal_images_directory,normal_selected_images_directory)
 
+path,dirs,files = next(os.walk(covid_images_directory))
+# dirs = ['P001']
+for folder in dirs:
+    source = normal_images_directory + SEPARATOR_ + folder
+    identify_max_image(source, destination, folder, key="Normal")
